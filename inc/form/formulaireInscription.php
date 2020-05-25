@@ -2,7 +2,7 @@
 /*
 *     Auteur              :  RUSSOTTI Leandro.
 *     Projet              :  EasyChef.
-*     Page                :  Formulaire de connexion.
+*     Page                :  Formulaire d'inscription.
 *     Date début projet   :  25.05.2020.
 */
 
@@ -49,10 +49,10 @@ if($btnConnexion)
     <div class="row">
         <div class="col-lg-12">
             <div class="shadow-lg card text-dark" style="background-color: #FFF8DC;">
-                <?php if (isset($erreur["login"])): ?>
-                    <div class="card-header bg-danger"><h5>Erreur dans la connexion</h5></div>
+                <?php if (isset($erreur["inscription"])): ?>
+                    <div class="card-header bg-danger"><h5>Erreur dans l'inscription</h5></div>
                 <?php else: ?>
-                    <div class="card-header text-light p-3 pl-4" style="background-color: #CD853F"><h4>Se connecter</h4></div>
+                    <div class="card-header text-light p-3 pl-4" style="background-color: #CD853F"><h4>S'inscrire</h4></div>
                 <?php endif; ?>
                 <div class="card-body">
                     <form method="post">
@@ -61,19 +61,19 @@ if($btnConnexion)
                                 <div class="col">
                                     <label><h5>Votre pseudo :</h5></label>
                                     <?php if (isset($erreur["surname"])): ?>
-                                        <input type="text" class="form-control is-invalid"  name="surname" required>
+                                        <input type="text" class="form-control is-invalid" name="surname" required>
                                         <div class="invalid-feedback"><?php if(isset($erreur["surname"])){ echo $erreur["surname"];} ?></div>
                                     <?php else: ?>
-                                        <input type="text" class="form-control"  name="surname" required value="<?php if(isset($surname)){echo $surname;}?>">
+                                        <input type="text" class="form-control" name="surname" required value="<?php if(isset($surname)){echo $surname;}?>">
                                     <?php endif; ?>
                                 </div>
                                 <div class="col">
-                                    <label><h5>Votre mot de passe :</h5></label>
-                                    <?php if (isset($erreur["password"])): ?>
-                                        <input type="password" class="form-control is-invalid" name="password" required>
-                                        <div class="invalid-feedback"><?php if(isset($erreur["password"])){ echo $erreur["password"];} ?></div>
+                                    <label><h5>Votre email :</h5></label>
+                                    <?php if (isset($erreur["email"])): ?>
+                                        <input type="text" class="form-control is-invalid" name="email" required>
+                                        <div class="invalid-feedback"><?php if(isset($erreur["email"])){ echo $erreur["surname"];} ?></div>
                                     <?php else: ?>
-                                        <input type="password" class="form-control" name="password" required value="<?php if(isset($password)){echo $password;}?>">
+                                        <input type="text" class="form-control" name="email" required value="<?php if(isset($email)){echo $email;}?>">
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -82,11 +82,8 @@ if($btnConnexion)
                             <label for="">&nbsp;</label>
                             <input type="submit" class="form-control btn btn-bouton1" value="Se connecter" name="btnConnexion">
                         </div>
-                    </form>
-                </div>
-                <div class="card-footer">
-                <p class="text-left"><h5>Pas de compte ?  s'incrire <a href=""> ici </a></h5></p>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

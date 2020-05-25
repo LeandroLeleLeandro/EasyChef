@@ -1,9 +1,9 @@
 <?php
 /*
 *     Auteur              :  RUSSOTTI Leandro.
-*     Projet              :  fakeTPI.
-*     Page                :  Logout.
-*     Date début projet   :  27.04.2020.
+*     Projet              :  EasyChef.
+*     Page                :  Page de déconnexion.
+*     Date début projet   :  25.05.2020.
 */
 
 session_start();

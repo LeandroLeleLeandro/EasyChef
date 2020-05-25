@@ -2,7 +2,7 @@
 /*
 *     Auteur              :  RUSSOTTI Leandro.
 *     Projet              :  EasyChef.
-*     Page                :  Page de connexion.
+*     Page                :  Page d'inscription.
 *     Date début projet   :  25.05.2020.
 */
 
@@ -42,7 +42,7 @@ if (isLogged())
         ?>
         <div class="formulaireConnexion">
             <?php
-                include('./inc/form/formulaireConnexion.php');
+                include('./inc/form/formulaireInscription.php');
             ?>
         </div>
     </body>

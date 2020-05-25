@@ -1,9 +1,9 @@
 <?php
 /*
 *     Auteur              :  RUSSOTTI Leandro.
-*     Projet              :  fakeTPI.
+*     Projet              :  EasyChef.
 *     Page                :  Connexion a la base de donnée.
-*     Date début projet   :  27.04.2020.
+*     Date début projet   :  25.05.2020.
 */
 
 require_once "informationBd.php";

@@ -1,9 +1,9 @@
 <?php
 /*
 *     Auteur              :  RUSSOTTI Leandro.
-*     Projet              :  fakeTPI.
-*     Page                :  Barre de navigation user connectés.
-*     Date début projet   :  27.04.2020.
+*     Projet              :  EasyChef.
+*     Page                :  Barre de navigation pour les user connectés.
+*     Date début projet   :  25.05.2020.
 */
 ?>
 <div class="container-fluid mb-5 text-light" style="background-color: orange;">
@@ -16,9 +16,9 @@
         </ul>
         <span class="navbar-text">
             <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <h5><a class="nav-link text-light" data-toggle="modal" data-target="#modalLogout">Déconnexion</a></h5>
-            </li>
+                <li class="nav-item">
+                    <h5><a href="./logout.php" class="nav-link text-light">Déconnexion</a></h5>
+                </li>
             </ul>
         </span>
         </div>

@@ -1,24 +1,15 @@
 <?php
 /*
 *     Auteur              :  RUSSOTTI Leandro.
-*     Projet              :  fakeTPI.
+*     Projet              :  EasyChef.
 *     Page                :  Information de connexion a la base de donnée.
-*     Date début projet   :  27.04.2020.
+*     Date début projet   :  25.05.2020.
 */
 
-  //  LOCAL WSL
-   /*
+  //  LOCAL 
     const SERVER = 'localhost';
-    const PSEUDO = 'faketpidba';
-    const PWD = 'Super';
-    const DATABASE_NAME = 'faketpi';
-    const PORT = "3306";
-    */
-  
-    // LOCAL EASY PHP
-    const SERVER = 'localhost';
-    const PSEUDO = 'root';
-    const PWD = '';
-    const DATABASE_NAME = 'faketpi';
-    const PORT = "3306";
-    ?>
+    const PSEUDO = 'admin';
+    const PWD = 'SuperAdmin';
+    const DATABASE_NAME = 'easychef';
+    const PORT = "";
+?>

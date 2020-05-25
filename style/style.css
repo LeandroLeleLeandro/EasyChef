@@ -5,18 +5,18 @@
 }
 body
 {
-    background-color: #f1f0f0;
+    background-color: #FFEBCD;
 }
 .btn-bouton1 
 {
     color:#fff;
-    background-color: #3993DD;
-    border-color: #3993DD;
+    background-color: #DAA520;
+    border-color: #DAA520;
 }
 .btn-bouton1:hover, .btn-bouton1:focus, .btn-bouton1:active, .btn-bouton1.active, .open>.dropdown-toggle.btn-bouton1 
 {
     color: #fff;
-    background-color: rgba(247, 209, 138, 0.712);
+    background-color: rgba(210, 105, 30, 0.486);
     border-color: #F7D08A;
 }
 .table {
