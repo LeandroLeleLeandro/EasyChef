@@ -24,22 +24,22 @@ error_reporting(E_ALL);
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="style/style.css">      
     </head>
-    <?php 
-        if (isLogged())
-        {
-            include "inc/navbar/navbarLogged.php";
-        }
-        else
-        {
-            include "inc/navbar/navbarNotLogged.php";
-        }
-    ?>
     <body>
-        <div class="formulaireAnimal mb-5">
+        <?php
+            if (isLogged())
+            {
+                include('inc/navbar/navbarLogged.php');
+            }
+            else
+            {
+                include('inc/navbar/navbarNotLogged.php');
+            }
+        ?>
+        <div class="formulaireConnexion">
             <?php
-                echo "banane";
+                echo showRecetteForUsers();
             ?>
-        </div>            
+        </div>
     </body>
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>

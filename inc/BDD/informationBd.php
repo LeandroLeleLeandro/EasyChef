@@ -8,8 +8,8 @@
 
   //  LOCAL 
     const SERVER = 'localhost';
-    const PSEUDO = 'admin';
-    const PWD = 'SuperAdmin';
+    const PSEUDO = 'root';
+    const PWD = '';
     const DATABASE_NAME = 'easychef';
     const PORT = "";
 ?>

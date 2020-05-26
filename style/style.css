@@ -5,7 +5,7 @@
 }
 body
 {
-    background-color: #FFEBCD;
+    background-color: rgba(255, 235, 205, 0.425);
 }
 .btn-bouton1 
 {
@@ -31,7 +31,7 @@ body
 }  
 .table-hover tbody tr:hover td, .table-hover tbody tr:hover th 
 {
-    color: #fff;
-    background-color: rgba(241, 149, 143, 0.301);
+    color: #000;
+    background-color: rgba(188, 143, 143, 0.075);
 }
 
