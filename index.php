@@ -14,7 +14,6 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$researchRecipe = "gateau";
 ?>
 
 <!DOCTYPE html>
@@ -37,12 +36,14 @@ $researchRecipe = "gateau";
                 include('inc/navbar/navbarNotLogged.php');
             }
         ?>
-        <div class="formulaireConnexion">
-        
+        <div>
+            <?php include('inc/form/formulaireRecherche.php'); ?>
+        </div>
+        <div class="affichageRecettes">  
             <?php
-            if (isset($researchRecipe)) 
+            if (isset($researchOk)) 
             {
-                echo showRecetteForUsers($researchRecipe);
+                echo showRecetteForUsers($researchOk);
             }
             else
             {
