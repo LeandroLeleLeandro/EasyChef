@@ -13,6 +13,8 @@ require_once('./inc/function.php');
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
+$researchRecipe = "gateau";
 ?>
 
 <!DOCTYPE html>
@@ -36,8 +38,17 @@ error_reporting(E_ALL);
             }
         ?>
         <div class="formulaireConnexion">
+        
             <?php
+            if (isset($researchRecipe)) 
+            {
+                echo showRecetteForUsers($researchRecipe);
+            }
+            else
+            {
                 echo showRecetteForUsers();
+            }
+                
             ?>
         </div>
     </body>

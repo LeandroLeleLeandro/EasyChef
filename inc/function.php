@@ -112,14 +112,43 @@ function getAllRecettes()
 }
 
 /**
+ * Fonction servant a obtenir toutes les recettes validés, contenant un certain mot.
+ *
+ * @param string $researchRecipe le mot qui doit être présent dans la recette
+ * @return array Tableau contenant les recettes validés contenant un certain mot.
+ */
+function getRecipeWithResearch($researchRecipe)
+{
+  global $db; 
+
+  $researchRecipe = "%".$researchRecipe."%";
+  $reqRecettes = $db->prepare('SELECT idRecipe,idUser,title,description,timeRequired,isValid,lastChangeDate FROM recipe WHERE isValid = 1 AND title LIKE :researchTitle OR description LIKE :researchDescription');
+  $reqRecettes->bindParam(":researchTitle",$researchRecipe,PDO::PARAM_STR);
+  $reqRecettes->bindParam(":researchDescription",$researchRecipe,PDO::PARAM_STR);
+  $reqRecettes->execute();
+  $recettes = $reqRecettes->fetchAll();
+  return $recettes;
+}
+
+
+/**
  * Fonction retournant les recettes disponible sous forme de tableau HTML
  *
  * @return string chaine contenant sous forme de tableau HTML les recettes du site.
  */
-function showRecetteForUsers()
+function showRecetteForUsers($researchRecipe = null)
 {
   $resultRecette = "";
-  $recettes = getAllRecettes();
+
+  if ($researchRecipe == null) 
+  {
+    $recettes = getAllRecettes();
+  }
+  else
+  {
+    $recettes = getRecipeWithResearch($researchRecipe);
+  }
+  
   foreach ($recettes as $r) 
   {
     $resultRecette .= "<tr>";
@@ -131,30 +160,60 @@ function showRecetteForUsers()
   }
 
   $datas = '';
-  $datas .= '<div class="container">';
-  $datas .=   '<div class="row">';
-  $datas .=     '<div class="col-lg-12">';
-  $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
-  $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: 	#F4A460"><h4>Listes des recettes</h4></div>';
-  $datas .=         '<div class="card-body p-0 m-0">';
-  $datas .=           '<table class="table table-hover">';
-  $datas .=             '<thead>';
-  $datas .=               '<tr>';
-  $datas .=                 '<th>Nom de la recette</th>';
-  $datas .=                 '<th>Temps de préparation</th>';
-  $datas .=                 '<th>Posté le</th>';
-  $datas .=                 '<th>Plus de détails</th>';
-  $datas .=               '</tr>';
-  $datas .=             '</thead>';
-  $datas .=             '<tbody>';
-  $datas .=               $resultRecette;
-  $datas .=             '</tbody>';
-  $datas .=           '</table class="table">';
-  $datas .=         '</div>';
-  $datas .=       '</div>';
-  $datas .=     '</div>';
-  $datas .=   '</div>';
-  $datas .= '</div>';
+
+  // Affichage si aucune recette a été trouvé
+  if(!$resultRecette)
+  {
+    $datas .= '<div class="container">';
+    $datas .=   '<div class="row">';
+    $datas .=     '<div class="col-lg-12">';
+    $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
+    $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: 	#F4A460"><h4>Résultat pour votre recherche : "'.$researchRecipe.'"</h4></div>';
+    $datas .=         '<div class="card-body p-0 m-0">';
+    $datas .=         '<h4 class="p-4 text-danger">Votre recherche à donné aucun résultat.</h4>';
+    $datas .=         '</div>';
+    $datas .=       '</div>';
+    $datas .=     '</div>';
+    $datas .=   '</div>';
+    $datas .= '</div>';
+  }
+  // Affichage si des recettes ont été trouvés
+  else
+  {
+    
+    $datas .= '<div class="container">';
+    $datas .=   '<div class="row">';
+    $datas .=     '<div class="col-lg-12">';
+    $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
+    if ($researchRecipe != null) 
+    {
+      $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: 	#F4A460"><h4>Résultat pour votre recherche : "'.$researchRecipe.'"</h4></div>';
+    }
+    else
+    {
+      $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: 	#F4A460"><h4>Listes des recettes</h4></div>';
+    }
+    $datas .=         '<div class="card-body p-0 m-0">';
+    $datas .=           '<table class="table table-hover">';
+    $datas .=             '<thead>';
+    $datas .=               '<tr>';
+    $datas .=                 '<th>Nom de la recette</th>';
+    $datas .=                 '<th>Temps de préparation</th>';
+    $datas .=                 '<th>Posté le</th>';
+    $datas .=                 '<th>Plus de détails</th>';
+    $datas .=               '</tr>';
+    $datas .=             '</thead>';
+    $datas .=             '<tbody>';
+    $datas .=               $resultRecette;
+    $datas .=             '</tbody>';
+    $datas .=           '</table class="table">';
+    $datas .=         '</div>';
+    $datas .=       '</div>';
+    $datas .=     '</div>';
+    $datas .=   '</div>';
+    $datas .= '</div>';
+  }
+  
 
   return $datas;
 }
