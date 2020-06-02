@@ -26,6 +26,33 @@ function isLogged()
 }
 
 /**
+ * Fonction servant a savoir si l'utilisateur est administrateur ou non.
+ *
+ * @param string $pseudo Le pseudo de l'utilisateur
+ * @return bool True s'il est admin.
+ */
+function isAdministrator($pseudo)
+{
+  global $db;
+
+  $reqAdmin = $db->prepare("SELECT admin FROM user WHERE pseudo = :pseudo");
+  $reqAdmin->bindParam(":pseudo",$pseudo,PDO::PARAM_STR);
+
+  $reqAdmin->execute();
+
+  $admin = $reqAdmin->fetch();
+
+  if($admin[0] == 1)
+  {
+      return true;
+  }
+  else
+  {
+      return false;
+  }
+}
+
+/**
  * Fonction servant a connecté l'user a la base.
  *
  * @param string $pseudo Le nom de l'user qui tente de se connecté.
@@ -130,10 +157,10 @@ function getRecipeWithResearch($researchRecipe)
   return $recettes;
 }
 
-
 /**
  * Fonction retournant les recettes disponible sous forme de tableau HTML
  *
+ * @param string chaine facultative contenant le mot a rechercher.
  * @return string chaine contenant sous forme de tableau HTML les recettes du site.
  */
 function showRecetteForUsers($researchRecipe = null)
@@ -235,12 +262,12 @@ function changeDateFormat($date)
  * @param int $idRecette l'id de la recette a vérifier
  * @return bool true si la recette existe en base.
  */
-function recetteExists($idRecette)
+function recetteExists($idRecipe)
 {
   global $db;
 
   $reqRecette = $db->prepare("SELECT idRecipe FROM recipe WHERE idRecipe = :idRecipe AND isValid = 1");
-  $reqRecette->bindParam(":idRecipe",$idRecette,PDO::PARAM_INT);
+  $reqRecette->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
   $reqRecette->execute();
 
   $recettesExist = $reqRecette->rowCount();
@@ -292,6 +319,24 @@ function getRecetteIngredientsFromId($idRecipe)
 }
 
 /**
+ * Fonction retournant les informations d'une recette
+ *
+ * @param int $idRecipe l'id de la recette
+ * @return array les infos de la recette
+ */
+function getInformationsOfRecipe($idRecipe)
+{
+  global $db; 
+
+  $reqInfos = $db->prepare('SELECT pseudo,title,description,timeRequired,lastChangeDate FROM recipe,user WHERE idRecipe = :idRecipe AND recipe.idUser = user.idUser');
+  $reqInfos->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $reqInfos->execute();
+
+  $informations = $reqInfos->fetch();
+  return $informations;
+}
+
+/**
  * Fonction affichant les ingrédiant sous forme de tableau html
  *
  * @param int $idRecipe id de la recette dont les ingrédiants sont voulu
@@ -299,28 +344,38 @@ function getRecetteIngredientsFromId($idRecipe)
  */
 function showIngredient($idRecipe)
 { 
-  $resultIngredient = "";
+  $datas = '<ul class="list-group shadow-lg">';
+  $datas .= '<li class="list-group-item"  style="background-color: #BAA378; color: white;"><h4>Ingrédients</h4></li>';
   $ingredients = getRecetteIngredientsFromId($idRecipe);
   foreach ($ingredients as $i) 
   {
     if ($i{"unity"} != "") 
     {
-      $resultIngredient .= "<tr>";
-      $resultIngredient .= "<td>".$i{"quantity"}." ".$i{"unity"}." de ".mb_strtolower($i{"name"})."</td>";
-      $resultIngredient .= "</tr>";
+      $datas .= "<li class=\"list-group-item\">".$i{"quantity"}." ".$i{"unity"}." de ".mb_strtolower($i{"name"})."</li>";
+
     }
   }
+  $datas .= "</ul>";
+  return $datas;
+}
 
-  $datas = '';
-  $datas .=           '<table class="table table-hover" stlye="width: 100%;">';
-  $datas .=             '<thead>';
-  $datas .=               '<th><h4>Ingrédients</h4></th>';
-  $datas .=             '</thead>';
-  $datas .=             '<tbody>';
-  $datas .=               $resultIngredient;
-  $datas .=               $resultIngredient;
-  $datas .=             '</tbody>';
-  $datas .=           '</table class="table">';
+/**
+ * Fonction retournant les informations d'une recette
+ *
+ * @param int $idRecipe l'id de la recette
+ * @return string La listes des informations
+ */
+function showInformations($idRecipe)
+{
+  $informations = getInformationsOfRecipe($idRecipe); 
+
+  $datas = '<ul class="list-group shadow-lg">';
+  $datas .= '<li class="list-group-item"  style="background-color: #BAA378; color: white;"><h4>Informations de la recette</h4></li>';
+  $datas .= "<li class=\"list-group-item\"><h5>Recette postée par : <small>".ucfirst($informations{"pseudo"})."</small></h5></li>";
+  $datas .= "<li class=\"list-group-item\"><h5>Dernière modification le : <small>".changeDateFormat($informations{"lastChangeDate"})."</small></h5></li>";
+  $datas .= "<li class=\"list-group-item\"><h5>Temps de cuisson : <small>".$informations{"timeRequired"}." minutes.</small></h5></li>";
+  $datas .= "<li class=\"list-group-item\"><h5>Marche a suivre : <small>".$informations{"description"}."</small></h5></li>";
+  $datas .= "</ul>";
 
   return $datas;
 }
@@ -344,6 +399,24 @@ function getRecetteRateFromId($idRecipe)
 }
 
 /**
+ * Fonction retournant le nombre d'avis différent d'une recette
+ *
+ * @param int $idRecipe id de la recette
+ * @return int nombre d'avis
+ */
+function getNumberOfRate($idRecipe)
+{
+  global $db; 
+
+  $reqRate = $db->prepare('SELECT rating FROM rate WHERE idRecipe = :idRecipe');
+  $reqRate->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $reqRate->execute();
+
+  $nbOfRate = $reqRate->rowCount();
+  return $nbOfRate;
+}
+
+/**
  * Fonction retournant la moyenne des notes d'une recette
  *
  * @param int $idRecipe l'id de la recette dont nous voulons la moyenne
@@ -364,5 +437,172 @@ function getMoyenneOfRates($idRecipe)
   $moy = round($moy, 1, PHP_ROUND_HALF_ODD);
   
   return $moy;
+}
+
+/**
+ * Fonction affichant la note moyenne d'une recette
+ *
+ * @param int $idRecipe L'id de la recette dont nous voulons la note moyenne
+ * @return string l'affichage a echo
+ */
+function showAvgRates($idRecipe)
+{
+  $rate = intval(getMoyenneOfRates($idRecipe));
+  $diffWithMaxRate = 5-$rate;
+  $datas = "";
+  $datas .=   '<h4 class="pt-2">'.getMoyenneOfRates($idRecipe).'/5&nbsp;&nbsp;';
+
+  for ($i=0; $i < $rate; $i++) 
+  { 
+    $datas .= '<i class="fa fa-star" style="color: #FDCC0D; font-size: 25px;"></i>';
+  }
+  for ($i=0; $i < $diffWithMaxRate; $i++) { 
+    $datas .=  '<i class="fa fa-star" style="color: black; font-size: 25px;"></i>';
+  }
+    
+  $datas .= ' sur '.getNumberOfRate($idRecipe).' avis.</h4>';
+  return $datas;
+}
+
+/**
+ * Fonction retournant le nom d'une recette depuis son id
+ *
+ * @param int $idRecipe l'id de la recette dont nous voulons le nom
+ * @return string le nom de la recette
+ */
+function getNameOfRecipe($idRecipe)
+{
+  global $db; 
+
+  $reqNameRecipe = $db->prepare('SELECT title FROM recipe WHERE idRecipe = :idRecipe');
+  $reqNameRecipe->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $reqNameRecipe->execute();
+
+  $name = $reqNameRecipe->fetch();
+  return $name[0];
+}
+
+/**
+ * Fonction retournant les commentaires d'une recettes depuis son ID
+ *
+ * @param int $idRecipe l'id de la recette.
+ * @return array commentaires de la recette.
+ */
+function getCommentsOfRecipe($idRecipe)
+{
+  global $db; 
+
+  $reqComments = $db->prepare('SELECT pseudo,description,rating,date FROM rate,user WHERE user.idUser = rate.idUser AND idRecipe = :idRecipe');
+  $reqComments->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $reqComments->execute();
+
+  $comments = $reqComments->fetchAll();
+  return $comments;
+}
+
+/**
+ * Fonction retournant tout les avis d'une recette
+ *
+ * @param int $idRecipe id de la recette
+ * @return string Les commentaires.
+ */
+function showAllComments($idRecipe)
+{
+  $datas = "";
+  $datas .= '<ul class="list-group shadow-lg">';
+  $datas .=   '<li class="list-group-item" style="background-color: #BAA378; color: white;"><h4>Avis de la recette :</h4></li>';
+  
+  $comments = getCommentsOfRecipe($idRecipe);
+  foreach ($comments as $c) 
+  {
+    $datas .= '<li class="list-group-item"><h4><span class="text-info">'.ucfirst($c{"pseudo"}).'</span> '.getStarsFromNumber($c{"rating"}).'  <span style="font-size : 20px;">le '.changeDateFormat($c{"date"}).'</span><br><small>'.$c{"description"}.'</small></h4></li>';
+  }
+                                                
+  $datas .= '<ul>';
+
+  return $datas;
+}
+
+/**
+ * Fonction retournant des étoiles en fonction d'un nombre
+ *
+ * @param int $number le nombre d'étoiles retournés
+ * @return string Les étoiles.
+ */
+function getStarsFromNumber($number)
+{
+  $datas = "";
+
+  for ($i=0; $i < $number; $i++) { 
+    $datas .= '<i class="fa fa-star" style="color: #FDCC0D; font-size: 25px;"></i>';
+  }
+
+  return $datas;
+}
+
+/**
+ * Fonction retournant true ou false en fonction de si l'utilisateur est l'auteur de la recette ou non.
+ *
+ * @param string $pseudo pseudo de l'utilisateur
+ * @param int $idRecipe id de l'utilisateur
+ * @return bool true si l'utilisateur est l'auteur
+ */
+function isTheAuthorOfRecipe($pseudo,$idRecipe)
+{
+  global $db;
+
+  $reqAuthor = $db->prepare("SELECT * FROM user,recipe WHERE pseudo = :pseudo AND idRecipe = :idRecipe AND recipe.idUser = user.idUser");
+  $reqAuthor->bindParam(":pseudo",$pseudo,PDO::PARAM_STR);
+  $reqAuthor->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $reqAuthor->execute();
+  $isAuthor = $reqAuthor->rowCount();
+
+  if($isAuthor == 1)
+  {
+      return true;
+  }
+  else
+  {
+      return false;
+  }
+}
+
+/**
+ * Fonction insérant en base de donnée un nouvel avis.
+ *
+ * @param int $idUser id de l'utilisateur
+ * @param int $idRecipe id de la recette
+ * @param int $rate note de la recette
+ * @param string $description description de l'avis
+ * @return void
+ */
+function insertRate($idUser,$idRecipe,$rate,$description)
+{
+  global $db;
+
+  $insertRate = $db->prepare("INSERT INTO rate(idUser,idRecipe,rating,description) VALUES(:idUser, :idRecipe, :rating, :description)");
+  $insertRate->bindParam(":idUser",$idUser,PDO::PARAM_INT);
+  $insertRate->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $insertRate->bindParam(":rating",$rate,PDO::PARAM_INT);
+  $insertRate->bindParam(":description",$description,PDO::PARAM_STR);
+  $insertRate->execute();
+}
+
+/**
+ * Fonction retournant l'id d'un user correspondant a un pseudo.
+ *
+ * @param string $pseudo pseudo de l'utilisateur
+ * @return int l'id de l'utilisateur
+ */
+function getIdUserFromPseudo($pseudo)
+{
+  global $db; 
+
+  $reqId = $db->prepare('SELECT idUser FROM user WHERE pseudo = :pseudo');
+  $reqId->bindParam(":pseudo",$pseudo,PDO::PARAM_STR);
+  $reqId->execute();
+
+  $id = $reqId->fetch();
+  return $id[0];
 }
 ?>

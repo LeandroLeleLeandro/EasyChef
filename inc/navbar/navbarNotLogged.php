@@ -6,7 +6,7 @@
 *     Date début projet   :  25.05.2020.
 */
 ?>
-<div class="container-fluid mb-5 text-light" style="background-color: #8B4513;">
+<div class="container-fluid mb-5 text-light" style="background-color: #2C2416;">
   <nav class="container navbar navbar-expand">
     <div class="collapse navbar-collapse"> 
         <ul class="navbar-nav mr-auto">

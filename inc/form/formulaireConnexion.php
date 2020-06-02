@@ -20,13 +20,13 @@ if($btnConnexion)
     // Vérifie si le champ surname est bien remplis.
     if (!$pseudo)
     {
-        $erreur["pseudo"] = ".";
+        $erreur["pseudo"] = "Le champ pseudo ne peut être vide.";
     }
 
     // Vérifie si le champ password n'est pas vide ou faux.
     if (!$password)
     {
-        $erreur["password"] = ".";
+        $erreur["password"] = "Le champ mot de passe ne peut être vide.";
     } 
 
     // Vérifie si les informations de connexion sont bonnes.

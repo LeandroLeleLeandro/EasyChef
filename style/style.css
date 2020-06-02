@@ -10,14 +10,14 @@ body
 .btn-bouton1 
 {
     color:#fff;
-    background-color: #DAA520;
-    border-color: #DAA520;
+    background-color: #453823;
+    border-color: #453823;
 }
 .btn-bouton1:hover, .btn-bouton1:focus, .btn-bouton1:active, .btn-bouton1.active, .open>.dropdown-toggle.btn-bouton1 
 {
     color: #fff;
-    background-color: rgba(210, 105, 30, 0.486);
-    border-color: #F7D08A;
+    background-color: #453823ce;
+    border-color: #453823;
 }
 .table {
     margin-bottom: 0px !important;
@@ -34,4 +34,14 @@ body
     color: #000;
     background-color: rgba(188, 143, 143, 0.075);
 }
-
+.rating-block{
+    margin: auto;
+    text-align: center;
+}
+.commentRecipe
+{
+    margin: auto;
+    background-color: white;
+    border: solid black 2px;
+    padding : 6px;
+}

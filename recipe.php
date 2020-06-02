@@ -2,7 +2,7 @@
 /*
 *     Auteur              :  RUSSOTTI Leandro.
 *     Projet              :  EasyChef.
-*     Page                :  Page d'accueil.
+*     Page                :  Page mes recettes.
 *     Date début projet   :  25.05.2020.
 */
 
@@ -14,11 +14,20 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+$idUserGet = FILTER_INPUT(INPUT_GET,"user",FILTER_VALIDATE_INT);
+$idUserLogged = getIdUserFromPseudo($_SESSION["pseudo"]);
+
+if ($idUserGet != $idUserLogged) 
+{
+    header("Location: index.php");
+    exit;
+}
+
 ?>
 
 <!DOCTYPE html>
 <html lang="fr">
-    <head>
+<head>
         <meta charset="UTF-8">
         <title>Salu - indexent</title> 
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
@@ -36,21 +45,11 @@ error_reporting(E_ALL);
                 include('inc/navbar/navbarNotLogged.php');
             }
         ?>
-        <div>
-            <?php include('inc/form/formulaireRecherche.php'); ?>
+        <div class="recipe">
+            <?php include('inc/form/formNewRecipe.php'); ?>
         </div>
         <div class="affichageRecettes">  
-            <?php
-            if (isset($researchOk)) 
-            {
-                echo showRecetteForUsers($researchOk);
-            }
-            else
-            {
-                echo showRecetteForUsers();
-            }
-                
-            ?>
+            
         </div>
     </body>
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
