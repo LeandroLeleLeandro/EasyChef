@@ -30,11 +30,11 @@ if($btnResearch)
 }
 ?>
 
-<div class="container">
+<div class="container-fluid mb-5">
     <div class="row">
-        <div class="col-lg-12 mb-4">
-            <div class="shadow-lg card text-dark" style="background-color: #FFF8DC;">
-                <div class="card-header text-light p-3 pl-4" style="background-color: #CD853F"><h4>Rechercher une recette</h4></div>
+        <div class="col-lg-10 m-auto">
+            <div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">
+                <div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Rechercher une recette</h4></div>
                 <div class="card-body">
                     <form method="post">
                         <div class="form-group">

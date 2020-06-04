@@ -70,8 +70,12 @@ $pathImg = getRecettePictureFromId($idRecette);
                                         <div class="col-lg-4 col-md-12 col-xs-12 mb-5">
                                             <ul class="list-group shadow-lg">
                                                 <li class="list-group-item" style="background-color: #BAA378; color: white;"><h4> <?= getNameOfRecipe($idRecette); ?></h4></li>
-                                                <li class="list-group-item"><img class="img-fluid rounded" src="<?= $pathImg[0]; ?>" alt="photo de la recette"></li>
-                                                <li class="list-group-item" style="text-align: center;"> <?= showAvgRates($idRecette) ?></li>
+                                                <li class="list-group-item"><img class="img-fluid rounded" src="img/upload/<?= $pathImg[0]; ?>" alt="photo de la recette"></li>
+                                                <?php if(rateExists($idRecette)) : ?>
+                                                    <li class="list-group-item" style="text-align: center;"> <?= showAvgRates($idRecette) ?></li>
+                                                <?php else : ?>
+                                                    <li class="list-group-item" style="text-align: center;"><h5>Cette recette n'as pas encore recu d'avis</h5></li>
+                                                <?php endif; ?>
                                             </ul>
                                         </div>
                                         <div class="col-lg-4 col-md-12 col-xs-12 mb-5">
@@ -87,9 +91,12 @@ $pathImg = getRecettePictureFromId($idRecette);
                                             </div>
                                         <?php endif; ?>
                                         
-                                        <div class="col-lg-12 col-md-12 col-xs-12 mb-5">
-                                            <?= showAllComments($idRecette); ?>
-                                        </div>
+                                        <?php if(rateExists($idRecette)) : ?>
+                                            <div class="col-lg-12 col-md-12 col-xs-12 mb-5">
+                                                <?= showAllComments($idRecette); ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        
                                     </div>
                                 </div>
                             </div>

@@ -133,8 +133,44 @@ function getAllRecettes()
 {
   global $db; 
 
-  $reqRecettes = $db->query('SELECT idRecipe,idUser,title,description,timeRequired,isValid,lastChangeDate FROM recipe WHERE isValid = 1');
+  $reqRecettes = $db->query('SELECT pseudo,path,recipe.idRecipe,recipe.idUser,title,description,timeRequired,isValid,lastChangeDate FROM user,picture,recipe WHERE isValid = 1 AND picture.idRecipe = recipe.idRecipe AND user.idUser = recipe.idUser');
   $recettes = $reqRecettes->fetchAll();
+  return $recettes;
+}
+
+/**
+ * Fonction retournant la liste des recettes d'un utilisateur
+ *
+ * @param int $idUser id de l'user
+ * @return array les recettes de l'utilisateur
+ */
+function getValidateRecipeOfUser($idUser)
+{
+  global $db; 
+
+  $reqRecipe = $db->prepare('SELECT path,recipe.idRecipe,idUser,title,description,timeRequired,isValid,lastChangeDate FROM picture,recipe WHERE picture.idRecipe = recipe.idRecipe AND recipe.idUser = :idUser AND isValid = 1');
+  $reqRecipe->bindParam(":idUser",$idUser,PDO::PARAM_INT);
+  $reqRecipe->execute();
+
+  $recettes = $reqRecipe->fetchAll();
+  return $recettes;
+}
+
+/**
+ * Fonction retournant la liste des recettes en attentes d'un utilisateur
+ *
+ * @param int $idUser id de l'user
+ * @return array les recettes de l'utilisateur
+ */
+function getWaitingRecipeOfUser($idUser)
+{
+  global $db; 
+
+  $reqRecipe = $db->prepare('SELECT path,recipe.idRecipe,idUser,title,description,timeRequired,isValid,lastChangeDate FROM picture,recipe WHERE picture.idRecipe = recipe.idRecipe AND recipe.idUser = :idUser AND isValid = 0');
+  $reqRecipe->bindParam(":idUser",$idUser,PDO::PARAM_INT);
+  $reqRecipe->execute();
+
+  $recettes = $reqRecipe->fetchAll();
   return $recettes;
 }
 
@@ -149,9 +185,8 @@ function getRecipeWithResearch($researchRecipe)
   global $db; 
 
   $researchRecipe = "%".$researchRecipe."%";
-  $reqRecettes = $db->prepare('SELECT idRecipe,idUser,title,description,timeRequired,isValid,lastChangeDate FROM recipe WHERE isValid = 1 AND title LIKE :researchTitle OR description LIKE :researchDescription');
-  $reqRecettes->bindParam(":researchTitle",$researchRecipe,PDO::PARAM_STR);
-  $reqRecettes->bindParam(":researchDescription",$researchRecipe,PDO::PARAM_STR);
+  $reqRecettes = $db->prepare('SELECT pseudo,path,picture.idRecipe,title,description,timeRequired,isValid,lastChangeDate FROM recipe INNER JOIN picture on recipe.idRecipe = picture.idRecipe INNER JOIN user on recipe.idUser = user.idUser WHERE isValid = 1 AND (title LIKE :researchRecipe OR description LIKE :researchRecipe)');
+  $reqRecettes->bindParam(":researchRecipe",$researchRecipe,PDO::PARAM_STR);
   $reqRecettes->execute();
   $recettes = $reqRecettes->fetchAll();
   return $recettes;
@@ -165,7 +200,7 @@ function getRecipeWithResearch($researchRecipe)
  */
 function showRecetteForUsers($researchRecipe = null)
 {
-  $resultRecette = "";
+  $resultRecipe = "";
 
   if ($researchRecipe == null) 
   {
@@ -178,24 +213,35 @@ function showRecetteForUsers($researchRecipe = null)
   
   foreach ($recettes as $r) 
   {
-    $resultRecette .= "<tr>";
-    $resultRecette .= "<td>".ucfirst($r{"title"})."</td>";
-    $resultRecette .= "<td>".$r{"timeRequired"}." Minutes</td>";
-    $resultRecette .= "<td>".changeDateFormat($r{"lastChangeDate"})."</td>";
-    $resultRecette .= "<td><a href=\"detailsRecette.php?idRecette=".$r{"idRecipe"}."\" title=\"Plus de détails\"><i class=\"fa fa-info-circle\"></i></a></td>";
-    $resultRecette .= "</tr>";
+    $resultRecipe .= "<tr style='background-color: #ffffff;'>";
+    $resultRecipe .= "<td><img class=\"img-fluid rounded\" src=\"img/upload/".$r{"path"}."\" alt=\"photo de la recette\" style=\"width: 150px; height: 100px;\"></td>";
+    $resultRecipe .= "<td class='align-middle'>".ucfirst($r{"title"})."</td>";
+    $resultRecipe .= "<td class='align-middle'>".ucfirst($r{"pseudo"})."</td>";
+    $resultRecipe .= "<td class='align-middle'>".numberOfRates($r{"idRecipe"})."</td>";
+    if (rateExists($r{"idRecipe"})) 
+    {
+      $resultRecipe .= "<td class='align-middle'>".getStarsFromNumber(getMoyenneOfRates($r{"idRecipe"}))."</td>";
+    }
+    else
+    {
+      $resultRecipe .= "<td class='align-middle'>Pas de note moyenne</td>";
+    }
+    $resultRecipe .= "<td class='align-middle'>".$r{"timeRequired"}." Minutes</td>";
+    $resultRecipe .= "<td class='align-middle'>".changeDateFormat($r{"lastChangeDate"})."</td>";
+    $resultRecipe .= "<td class='align-middle'><a href=\"detailsRecette.php?idRecette=".$r{"idRecipe"}."\" title=\"Plus de détails\"><i class=\"fa fa-info-circle\"></i></a></td>";
+    $resultRecipe .= "</tr>";
   }
 
   $datas = '';
 
   // Affichage si aucune recette a été trouvé
-  if(!$resultRecette)
+  if(!$resultRecipe)
   {
-    $datas .= '<div class="container">';
+    $datas .= '<div class="container-fluid">';
     $datas .=   '<div class="row">';
-    $datas .=     '<div class="col-lg-12">';
+    $datas .=     '<div class="col-lg-10 m-auto">';
     $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
-    $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: 	#F4A460"><h4>Résultat pour votre recherche : "'.$researchRecipe.'"</h4></div>';
+    $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Résultat pour votre recherche : "'.$researchRecipe.'"</h4></div>';
     $datas .=         '<div class="card-body p-0 m-0">';
     $datas .=         '<h4 class="p-4 text-danger">Votre recherche à donné aucun résultat.</h4>';
     $datas .=         '</div>';
@@ -208,30 +254,34 @@ function showRecetteForUsers($researchRecipe = null)
   else
   {
     
-    $datas .= '<div class="container">';
+    $datas .= '<div class="container-fluid">';
     $datas .=   '<div class="row">';
-    $datas .=     '<div class="col-lg-12">';
+    $datas .=     '<div class="col-lg-10 m-auto">';
     $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
     if ($researchRecipe != null) 
     {
-      $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: 	#F4A460"><h4>Résultat pour votre recherche : "'.$researchRecipe.'"</h4></div>';
+      $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Résultat pour votre recherche : "'.$researchRecipe.'"</h4></div>';
     }
     else
     {
-      $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: 	#F4A460"><h4>Listes des recettes</h4></div>';
+      $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Listes des recettes</h4></div>';
     }
     $datas .=         '<div class="card-body p-0 m-0">';
     $datas .=           '<table class="table table-hover">';
     $datas .=             '<thead>';
     $datas .=               '<tr>';
+    $datas .=                 '<th>Photo de la recette</th>';
     $datas .=                 '<th>Nom de la recette</th>';
+    $datas .=                 '<th>Auteur de la recette</th>';
+    $datas .=                 '<th>Nombre d\'avis</th>';
+    $datas .=                 '<th>Note moyenne</th>';
     $datas .=                 '<th>Temps de préparation</th>';
     $datas .=                 '<th>Posté le</th>';
-    $datas .=                 '<th>Plus de détails</th>';
+    $datas .=                 '<th>Plus d\'informations</th>';
     $datas .=               '</tr>';
     $datas .=             '</thead>';
     $datas .=             '<tbody>';
-    $datas .=               $resultRecette;
+    $datas .=               $resultRecipe;
     $datas .=             '</tbody>';
     $datas .=           '</table class="table">';
     $datas .=         '</div>';
@@ -241,6 +291,138 @@ function showRecetteForUsers($researchRecipe = null)
     $datas .= '</div>';
   }
   
+
+  return $datas;
+}
+
+/**
+ * Fonction retournant l'affichage des recettes d'un utilisateur
+ *
+ * @param int $idUser id de l'utilisateur
+ * @return string affichage des recettes.
+ */
+function showValidateRecipeForMyRecipePage($idUser)
+{
+  $resultRecipe = "";
+
+  $recettes = getValidateRecipeOfUser($idUser);
+  
+  foreach ($recettes as $r) 
+  {
+    $resultRecipe .= "<tr style='background-color: #ffffff;'>";
+    $resultRecipe .= "<td><img class=\"img-fluid rounded\" src=\"img/upload/".$r{"path"}."\" alt=\"photo de la recette\" style=\"width: 150px; height: 100px;\"></td>";
+    $resultRecipe .= "<td class='align-middle'>".ucfirst($r{"title"})."</td>";
+    $resultRecipe .= "<td class='align-middle'>".numberOfRates($r{"idRecipe"})."</td>";
+    if (rateExists($r{"idRecipe"})) 
+    {
+      $resultRecipe .= "<td class='align-middle'>".getStarsFromNumber(getMoyenneOfRates($r{"idRecipe"}))."</td>";
+    }
+    else
+    {
+      $resultRecipe .= "<td class='align-middle'>Pas de note moyenne</td>";
+    }
+    $resultRecipe .= "<td class='align-middle'>".$r{"timeRequired"}." Minutes</td>";
+    $resultRecipe .= "<td class='align-middle'>".changeDateFormat($r{"lastChangeDate"})."</td>";
+    $resultRecipe .= "<td class='align-middle'><a href=\"editRecipe.php?idUser=".$idUser."&idRecipe=".$r{"idRecipe"}."\" title=\"Modifier\"><i class=\"fa fa-edit\"></i></a></td>";
+    $resultRecipe .= "<td class='align-middle'><a class='text-danger' href=\"deleteRecipe.php?idUser=".$idUser."&idRecipe=".$r{"idRecipe"}."\" title=\"Supprimer\"><i class=\"fa fa-trash\"></i></a></td>";
+    $resultRecipe .= "</tr>";
+  }
+
+  $datas = '';
+  $datas .= '<div class="container-fluid mb-5">';
+  $datas .=   '<div class="row">';
+  $datas .=     '<div class="col-lg-10 m-auto">';
+  $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
+  $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Listes des recettes de l\'utilisateur '.$_SESSION["pseudo"].'</h4></div>';
+  $datas .=         '<div class="card-body p-0 m-0">';
+  $datas .=           '<table class="table table-hover">';
+  $datas .=             '<thead>';
+  $datas .=               '<tr>';
+  $datas .=                 '<th>Photo de la recette</th>';
+  $datas .=                 '<th>Nom de la recette</th>';
+  $datas .=                 '<th>Nombre d\'avis</th>';
+  $datas .=                 '<th>Note moyenne</th>';
+  $datas .=                 '<th>Temps de préparation</th>';
+  $datas .=                 '<th>Posté le</th>';
+  $datas .=                 '<th>Modifier</th>';
+  $datas .=                 '<th>Supprimer</th>';
+  $datas .=               '</tr>';
+  $datas .=             '</thead>';
+  $datas .=             '<tbody>';
+  $datas .=               $resultRecipe;
+  $datas .=             '</tbody>';
+  $datas .=           '</table class="table">';
+  $datas .=         '</div>';
+  $datas .=       '</div>';
+  $datas .=     '</div>';
+  $datas .=   '</div>';
+  $datas .= '</div>';
+
+  return $datas;
+}
+
+/**
+ * Fonction retournant l'affichage des recettes en attente d'un utilisateur
+ *
+ * @param int $idUser id de l'utilisateur
+ * @return string affichage des recettes.
+ */
+function showWaitingRecipeForMyRecipePage($idUser)
+{
+
+  $resultRecipe = "";
+  $recipe = getWaitingRecipeOfUser($idUser);
+  
+  foreach ($recipe as $r) 
+  {
+    $resultRecipe .= "<tr style='background-color: #ffffff;'>";
+    $resultRecipe .= "<td><img class=\"img-fluid rounded\" src=\"img/upload/".$r{"path"}."\" alt=\"photo de la recette\" style=\"width: 150px; height: 100px;\"></td>";
+    $resultRecipe .= "<td class='align-middle'>".ucfirst($r{"title"})."</td>";
+    $resultRecipe .= "<td class='align-middle'>".numberOfRates($r{"idRecipe"})."</td>";
+    if (rateExists($r{"idRecipe"})) 
+    {
+      $resultRecipe .= "<td class='align-middle'>".getStarsFromNumber(getMoyenneOfRates($r{"idRecipe"}))."</td>";
+    }
+    else
+    {
+      $resultRecipe .= "<td class='align-middle'>Pas de note moyenne</td>";
+    }
+    $resultRecipe .= "<td class='align-middle'>".$r{"timeRequired"}." Minutes</td>";
+    $resultRecipe .= "<td class='align-middle'>".changeDateFormat($r{"lastChangeDate"})."</td>";
+    $resultRecipe .= "<td class='align-middle'><a href=\"editRecipe.php?idUser=".$idUser."&idRecipe=".$r{"idRecipe"}."\" title=\"Modifier\"><i class=\"fa fa-edit\"></i></a></td>";
+    $resultRecipe .= "<td class='align-middle'><a class='text-danger' href=\"deleteRecipe.php?idUser=".$idUser."&idRecipe=".$r{"idRecipe"}."\" title=\"Supprimer\"><i class=\"fa fa-trash\"></i></a></td>";
+    $resultRecipe .= "</tr>";
+  }
+
+  $datas = '';
+  $datas .= '<div class="container-fluid mb-5">';
+  $datas .=   '<div class="row">';
+  $datas .=     '<div class="col-lg-10 m-auto">';
+  $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
+  $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Listes des en attente de l\'utilisateur '.$_SESSION["pseudo"].'</h4></div>';
+  $datas .=         '<div class="card-body p-0 m-0">';
+  $datas .=           '<table class="table table-hover">';
+  $datas .=             '<thead>';
+  $datas .=               '<tr>';
+  $datas .=                 '<th>Photo de la recette</th>';
+  $datas .=                 '<th>Nom de la recette</th>';
+  $datas .=                 '<th>Nombre d\'avis</th>';
+  $datas .=                 '<th>Note moyenne</th>';
+  $datas .=                 '<th>Temps de préparation</th>';
+  $datas .=                 '<th>Posté le</th>';
+  $datas .=                 '<th>Modifier</th>';
+  $datas .=                 '<th>Supprimer</th>';
+  $datas .=               '</tr>';
+  $datas .=             '</thead>';
+  $datas .=             '<tbody>';
+  $datas .=               $resultRecipe;
+  $datas .=             '</tbody>';
+  $datas .=           '</table class="table">';
+  $datas .=         '</div>';
+  $datas .=       '</div>';
+  $datas .=     '</div>';
+  $datas .=   '</div>';
+  $datas .= '</div>';
 
   return $datas;
 }
@@ -352,7 +534,10 @@ function showIngredient($idRecipe)
     if ($i{"unity"} != "") 
     {
       $datas .= "<li class=\"list-group-item\">".$i{"quantity"}." ".$i{"unity"}." de ".mb_strtolower($i{"name"})."</li>";
-
+    }
+    else
+    {
+      $datas .= "<li class=\"list-group-item\">".$i{"quantity"}." ".mb_strtolower($i{"name"})."</li>";
     }
   }
   $datas .= "</ul>";
@@ -605,4 +790,201 @@ function getIdUserFromPseudo($pseudo)
   $id = $reqId->fetch();
   return $id[0];
 }
+
+/**
+ * Fonction insérant une nouvelle recette en base
+ *
+ * @param int $idUser id de l'user
+ * @param string $title titre de la recette
+ * @param string $description description de la recette
+ * @param int $timeRequired temps nécessaire
+ * @return int id de la recette.
+ */
+function insertNewRecipe($idUser,$title,$description,$timeRequired)
+{
+  global $db;
+
+  $insertRecipe = $db->prepare("INSERT INTO recipe(idUser,title,description,timeRequired) VALUES(:idUser, :title, :description, :timeRequired)");
+  $insertRecipe->bindParam(":idUser",$idUser,PDO::PARAM_INT);
+  $insertRecipe->bindParam(":title",$title,PDO::PARAM_STR);
+  $insertRecipe->bindParam(":description",$description,PDO::PARAM_STR);
+  $insertRecipe->bindParam(":timeRequired",$timeRequired,PDO::PARAM_INT);
+  $insertRecipe->execute();
+
+  return $db->lastInsertId();
+}
+
+/**
+ * Fonction insérant une image en base
+ *
+ * @param int $idRecipe id de la recette
+ * @param string $path nom de l'image
+ * @return void
+ */
+function insertNewPicture($idRecipe,$path)
+{
+  global $db;
+
+  $insertPicture = $db->prepare("INSERT INTO picture(idRecipe,path) VALUES(:idRecipe, :path)");
+  $insertPicture->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $insertPicture->bindParam(":path",$path,PDO::PARAM_STR);
+  $insertPicture->execute();
+}
+
+/**
+ * Fonction insérant les ingrédients en base
+ *
+ * @param int $idRecipe id de la recette
+ * @param string $name nom de l'ingrédient
+ * @param int $quantity quantité pour l'ingrédient
+ * @param string $unity unité de l'ingrédient (facultatif)
+ * @return void
+ */
+function insertNewIngredients($idRecipe,$name,$quantity,$unity = "")
+{
+  global $db;
+
+  $insertIngredient = $db->prepare("INSERT INTO ingredient(idRecipe,name,quantity,unity) VALUES(:idRecipe, :name, :quantity, :unity)");
+  $insertIngredient->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $insertIngredient->bindParam(":name",$name,PDO::PARAM_STR);
+  $insertIngredient->bindParam(":quantity",$quantity,PDO::PARAM_INT);
+  $insertIngredient->bindParam("unity",$unity,PDO::PARAM_STR);
+  $insertIngredient->execute();
+}
+
+/**
+ * Fonction servant a savoir si une recette a déjà recu des avis ou non
+ *
+ * @param int $idRecipe id de la recette
+ * @return bool true si l'avis existe
+ */
+function rateExists($idRecipe)
+{
+  global $db;
+
+  $reqRate = $db->prepare("SELECT rating FROM rate WHERE idRecipe = :idRecipe");
+  $reqRate->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $reqRate->execute();
+
+  $rateExists = $reqRate->rowCount();
+
+  if($rateExists >= 1)
+  {
+      return true;
+  }
+  else
+  {
+      return false;
+  }
+}
+
+/**
+ * Fonction retournant le nombre d'avis d'une recette
+ *
+ * @param int $idRecipe id de la recette
+ * @return int nombre d'avis
+ */
+function numberOfRates($idRecipe)
+{
+  global $db;
+
+  $reqRate = $db->prepare("SELECT rating FROM rate WHERE idRecipe = :idRecipe");
+  $reqRate->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $reqRate->execute();
+
+  return $reqRate->rowCount();
+}
+
+/**
+ * Fonction retournant le nombre de recette validé d'un user
+ *
+ * @param int $idUser id de l'utilisateur
+ * @return int nombre de recette validé
+ */
+function numberOfValidedRecipeByUser($idUser)
+{
+  global $db;
+
+  $reqRecipe = $db->prepare("SELECT isValid FROM recipe WHERE idUser = :idUser AND isValid = 1");
+  $reqRecipe->bindParam(":idUser",$idUser,PDO::PARAM_INT);
+  $reqRecipe->execute();
+
+  return $reqRecipe->rowCount();
+}
+
+/**
+ * Fonction retournant le nombre de recette en attente d'un user
+ *
+ * @param int $idUser id de l'utilisateur
+ * @return int nombre de recette en attente
+ */
+function numberOfWaitingRecipeByUser($idUser)
+{
+  global $db;
+
+  $reqRecipe = $db->prepare("SELECT isValid FROM recipe WHERE idUser = :idUser AND isValid = 0");
+  $reqRecipe->bindParam(":idUser",$idUser,PDO::PARAM_INT);
+  $reqRecipe->execute();
+
+  return $reqRecipe->rowCount();
+}
+
+/**
+ * Fonction supprimant toutes informations d'une recette
+ *
+ * @param int $idRecipe it de la recette
+ * @return void
+ */
+function removeAllInformationsOfRecipe($idRecipe)
+{
+  removePicture($idRecipe);
+  removeIngredients($idRecipe);
+  removeRecipe($idRecipe);
+}
+
+/**
+ * Fonction supprimant l'image d'une recette
+ *
+ * @param int $idRecipe id de la recette
+ * @return void
+ */
+function removePicture($idRecipe)
+{
+  global $db;
+
+  $removePicture = $db->prepare("DELETE FROM picture WHERE idRecipe = :idRecipe");
+  $removePicture->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $removePicture->execute();
+}
+
+/**
+ * Fonction supprimant les ingrédients d'une recette
+ *
+ * @param int $idRecipe id de la recette
+ * @return void
+ */
+function removeIngredients($idRecipe)
+{
+  global $db;
+
+  $removeIngredient = $db->prepare("DELETE FROM ingredient WHERE idRecipe = :idRecipe");
+  $removeIngredient->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $removeIngredient->execute();
+}
+
+/**
+ * Fonction supprimant une recette
+ *
+ * @param int $idRecipe id de la recette
+ * @return void
+ */
+function removeRecipe($idRecipe)
+{
+  global $db;
+
+  $removeIngredient = $db->prepare("DELETE FROM recipe WHERE idRecipe = :idRecipe");
+  $removeIngredient->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $removeIngredient->execute();
+}
+
 ?>

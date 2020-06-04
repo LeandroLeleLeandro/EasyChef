@@ -27,9 +27,9 @@ if ($idUserGet != $idUserLogged)
 
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+    <head>
         <meta charset="UTF-8">
-        <title>Salu - indexent</title> 
+        <title>EasyChef - Mes recettes</title> 
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
         <link rel="stylesheet" href="style/style.css">      
@@ -45,11 +45,20 @@ if ($idUserGet != $idUserLogged)
                 include('inc/navbar/navbarNotLogged.php');
             }
         ?>
+        <?php if (numberOfValidedRecipeByUser($idUserLogged) >= 1): ?>
+            <div class="affichageRecettesValidés">  
+                <?= showValidateRecipeForMyRecipePage($idUserLogged); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (numberOfWaitingRecipeByUser($idUserLogged) >= 1): ?>
+            <div class="affichageRecettesValidés">  
+            <?= showWaitingRecipeForMyRecipePage($idUserLogged); ?>
+                </div>
+        <?php endif; ?>
+        
         <div class="recipe">
             <?php include('inc/form/formNewRecipe.php'); ?>
-        </div>
-        <div class="affichageRecettes">  
-            
         </div>
     </body>
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>

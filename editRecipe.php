@@ -2,7 +2,7 @@
 /*
 *     Auteur              :  RUSSOTTI Leandro.
 *     Projet              :  EasyChef.
-*     Page                :  Page d'accueil.
+*     Page                :  Page d'édition de recette.
 *     Date début projet   :  25.05.2020.
 */
 
@@ -14,13 +14,23 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+$idRecipe = filter_input(INPUT_GET,"idRecipe",FILTER_VALIDATE_INT);
+$idUserGet = filter_input(INPUT_GET,"idUser",FILTER_VALIDATE_INT);
+$idUserLogged = getIdUserFromPseudo($_SESSION["pseudo"]);
+
+if ($idUserGet != $idUserLogged) 
+{
+    header("Location: index.php");
+    exit;
+}
+
 ?>
 
 <!DOCTYPE html>
 <html lang="fr">
     <head>
         <meta charset="UTF-8">
-        <title>Salu - indexent</title> 
+        <title>EasyChef - Edition recette</title> 
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
         <link rel="stylesheet" href="style/style.css">      
@@ -36,21 +46,16 @@ error_reporting(E_ALL);
                 include('inc/navbar/navbarNotLogged.php');
             }
         ?>
-        <div>
-            <?php include('inc/form/formulaireRecherche.php'); ?>
+        <div class="addIngredients">  
+            <?= include('inc/form/formNewIngredients.php'); ?>
         </div>
-        <div class="affichageRecettes m-auto">  
-            <?php
-            if (isset($researchOk)) 
-            {
-                echo showRecetteForUsers($researchOk);
-            }
-            else
-            {
-                echo showRecetteForUsers();
-            }
-                
-            ?>
+
+        <div class="affichageRecettesValidés">  
+            <?= showWaitingRecipeForMyRecipePage($idUserLogged); ?>
+        </div>
+        
+        <div class="recipe">
+            <?php include('inc/form/formNewRecipe.php'); ?>
         </div>
     </body>
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
