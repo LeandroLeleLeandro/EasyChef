@@ -27,12 +27,13 @@ if ($btnSendComment)
             $rate = 1;
         }
         insertRate(getIdUserFromPseudo($pseudo),$idRecipe,$rate,$comment);
+        echo '<meta http-equiv="refresh" content="0">';
     }
 }
 ?>
 <form method="post">
     <ul class="list-group shadow-lg">
-        <li class="list-group-item" style="background-color: #BAA378; color: white;">
+        <li class="list-group-item " style="background-color: #BAA378; color: white;">
             <h4>Poster un avis en tant que <span style="color: #2C2416"><?= ucfirst($pseudo); ?></span> : </h4>
         </li>
         <li class="list-group-item"><h4><span style="color: #382E1C">

@@ -2,7 +2,7 @@
 /*
 *     Auteur              :  RUSSOTTI Leandro.
 *     Projet              :  EasyChef.
-*     Page                :  Page mes recettes.
+*     Page                :  Page d'édition d'avis.
 *     Date début projet   :  25.05.2020.
 */
 
@@ -14,9 +14,12 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$idUserGet = FILTER_INPUT(INPUT_GET,"user",FILTER_VALIDATE_INT);
+// Récupère les donnés en GET et l'id de l'user
+$idRate = filter_input(INPUT_GET,"idRate",FILTER_VALIDATE_INT);
+$idUserGet = filter_input(INPUT_GET,"idUser",FILTER_VALIDATE_INT);
 $idUserLogged = getIdUserFromPseudo($_SESSION["pseudo"]);
 
+// Vérifie si l'id de la page joue avec celui de l'user sinon redirige
 if ($idUserGet != $idUserLogged) 
 {
     header("Location: index.php");
@@ -29,7 +32,7 @@ if ($idUserGet != $idUserLogged)
 <html lang="fr">
     <head>
         <meta charset="UTF-8">
-        <title>EasyChef - Mes recettes</title> 
+        <title>EasyChef - Edition d'avis</title> 
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
         <link rel="stylesheet" href="style/style.css">      
@@ -52,20 +55,8 @@ if ($idUserGet != $idUserLogged)
                 include('inc/navbar/navbarNotLogged.php');
             }
         ?>
-        <?php if (numberOfValidedRecipeByUser($idUserLogged) >= 1): ?>
-            <div class="affichageRecettesValidés">  
-                <?= showValidateRecipeForMyRecipePage($idUserLogged); ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if (numberOfWaitingRecipeByUser($idUserLogged) >= 1): ?>
-            <div class="affichageRecettesValidés">  
-            <?= showWaitingRecipeForMyRecipePage($idUserLogged); ?>
-                </div>
-        <?php endif; ?>
-        
-        <div class="recipe">
-            <?php include('inc/form/formNewRecipe.php'); ?>
+        <div class="container">  
+            <?php include('inc/form/formEditRate.php'); ?>
         </div>
     </body>
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>

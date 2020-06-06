@@ -27,14 +27,21 @@ error_reporting(E_ALL);
     </head>
     <body>
         <?php
-            if (isLogged())
-            {
-                include('inc/navbar/navbarLogged.php');
-            }
-            else
-            {
+             if (isLogged())
+             {
+                 if (isAdministrator($_SESSION["pseudo"])) 
+                 {
+                     include('inc/navbar/navbarAdmin.php');
+                 }
+                 else
+                 {
+                     include('inc/navbar/navbarLogged.php');
+                 }
+             }
+             else
+             {
                 include('inc/navbar/navbarNotLogged.php');
-            }
+             }
         ?>
         <div>
             <?php include('inc/form/formulaireRecherche.php'); ?>

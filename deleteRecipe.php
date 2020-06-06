@@ -40,7 +40,14 @@ if ($idUserGet != $idUserLogged)
         <?php
             if (isLogged())
             {
-                include('inc/navbar/navbarLogged.php');
+                if (isAdministrator($_SESSION["pseudo"])) 
+                {
+                    include('inc/navbar/navbarAdmin.php');
+                }
+                else
+                {
+                    include('inc/navbar/navbarLogged.php');
+                }
             }
             else
             {

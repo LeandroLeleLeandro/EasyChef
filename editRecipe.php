@@ -39,23 +39,25 @@ if ($idUserGet != $idUserLogged)
         <?php
             if (isLogged())
             {
-                include('inc/navbar/navbarLogged.php');
+                if (isAdministrator($_SESSION["pseudo"])) 
+                {
+                    include('inc/navbar/navbarAdmin.php');
+                }
+                else
+                {
+                    include('inc/navbar/navbarLogged.php');
+                }
             }
             else
             {
                 include('inc/navbar/navbarNotLogged.php');
             }
         ?>
+        <div class="editRecipe">  
+            <?= include('inc/form/formEditRecipe.php'); ?>
+        </div>
         <div class="addIngredients">  
             <?= include('inc/form/formNewIngredients.php'); ?>
-        </div>
-
-        <div class="affichageRecettesValidés">  
-            <?= showWaitingRecipeForMyRecipePage($idUserLogged); ?>
-        </div>
-        
-        <div class="recipe">
-            <?php include('inc/form/formNewRecipe.php'); ?>
         </div>
     </body>
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>

@@ -49,11 +49,11 @@ if($btnConnexion)
 <div class="container">
     <div class="row">
         <div class="col-lg-12">
-            <div class="shadow-lg card text-dark" style="background-color: #FFF8DC;">
+            <div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">
                 <?php if (isset($erreur["login"])): ?>
                     <div class="card-header text-light p-3 pl-4" style="background-color: #A52A2A"><h4><?php if(isset($erreur["login"])){ echo $erreur["login"];} ?></h4></div>
                 <?php else: ?>
-                    <div class="card-header text-light p-3 pl-4" style="background-color: #CD853F"><h4>Se connecter</h4></div>
+                    <div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Se connecter</h4></div>
                 <?php endif; ?>
                 <div class="card-body">
                     <form method="post">

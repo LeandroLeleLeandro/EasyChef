@@ -17,6 +17,9 @@
         <span class="navbar-text">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item mr-2">
+                    <h5><a href="admin.php" class="nav-link text-light">Administration</a></h5>
+                </li>
+                <li class="nav-item mr-2">
                     <h5><a href="./recipe.php?user=<?= getIdUserFromPseudo($_SESSION['pseudo']) ?>" class="nav-link text-light">Mes recettes</a></h5>
                 </li>
                 <li class="nav-item mr-2">

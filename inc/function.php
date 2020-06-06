@@ -133,7 +133,7 @@ function getAllRecettes()
 {
   global $db; 
 
-  $reqRecettes = $db->query('SELECT pseudo,path,recipe.idRecipe,recipe.idUser,title,description,timeRequired,isValid,lastChangeDate FROM user,picture,recipe WHERE isValid = 1 AND picture.idRecipe = recipe.idRecipe AND user.idUser = recipe.idUser');
+  $reqRecettes = $db->query('SELECT pseudo,path,recipe.idRecipe,recipe.idUser,title,description,timeRequired,isValid,lastChangeDate FROM user,picture,recipe WHERE isValid = 1 AND picture.idRecipe = recipe.idRecipe AND user.idUser = recipe.idUser ORDER BY title ASC');
   $recettes = $reqRecettes->fetchAll();
   return $recettes;
 }
@@ -193,6 +193,21 @@ function getRecipeWithResearch($researchRecipe)
 }
 
 /**
+ * Fonction retournant les 2 premieres phrases d'une longue chaine de caractère
+ *
+ * @param string $datas
+ * @return string 2 première phrases
+ */
+function getFirstSentences($datas) 
+{
+  $datas = str_replace("&#39;","'",$datas);
+  $split = preg_split('/(\.|\!|\?)/', $datas, 3, PREG_SPLIT_DELIM_CAPTURE);
+  $firstSentences = implode('', array_slice($split, 0, 4));
+
+  return htmlspecialchars($firstSentences);
+}
+
+/**
  * Fonction retournant les recettes disponible sous forme de tableau HTML
  *
  * @param string chaine facultative contenant le mot a rechercher.
@@ -213,10 +228,18 @@ function showRecetteForUsers($researchRecipe = null)
   
   foreach ($recettes as $r) 
   {
+    $ingredients = getRecetteIngredientsFromId($r{"idRecipe"});
     $resultRecipe .= "<tr style='background-color: #ffffff;'>";
     $resultRecipe .= "<td><img class=\"img-fluid rounded\" src=\"img/upload/".$r{"path"}."\" alt=\"photo de la recette\" style=\"width: 150px; height: 100px;\"></td>";
     $resultRecipe .= "<td class='align-middle'>".ucfirst($r{"title"})."</td>";
+    $resultRecipe .= "<td class='align-middle'>".getFirstSentences($r{"description"})."</td>";
     $resultRecipe .= "<td class='align-middle'>".ucfirst($r{"pseudo"})."</td>";
+    $resultRecipe .= "<td class='align-middle' stlye='width: 10px;'>";
+    foreach ($ingredients as $i) 
+    {
+      $resultRecipe .= " ".$i{"name"}.",";
+    }
+    $resultRecipe .= "</td>";
     $resultRecipe .= "<td class='align-middle'>".numberOfRates($r{"idRecipe"})."</td>";
     if (rateExists($r{"idRecipe"})) 
     {
@@ -272,7 +295,9 @@ function showRecetteForUsers($researchRecipe = null)
     $datas .=               '<tr>';
     $datas .=                 '<th>Photo de la recette</th>';
     $datas .=                 '<th>Nom de la recette</th>';
+    $datas .=                 '<th style="width: 250px;">Courte déscription</th>';
     $datas .=                 '<th>Auteur de la recette</th>';
+    $datas .=                 '<th style="width: 200px;">Ingrédients</th>';
     $datas .=                 '<th>Nombre d\'avis</th>';
     $datas .=                 '<th>Note moyenne</th>';
     $datas .=                 '<th>Temps de préparation</th>';
@@ -492,7 +517,7 @@ function getRecetteIngredientsFromId($idRecipe)
 {
   global $db; 
 
-  $reqIngredient = $db->prepare('SELECT name,quantity,unity FROM ingredient WHERE idRecipe = :idRecipe');
+  $reqIngredient = $db->prepare('SELECT idIngredient,name,quantity,unity FROM ingredient WHERE idRecipe = :idRecipe');
   $reqIngredient->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
   $reqIngredient->execute();
 
@@ -677,7 +702,7 @@ function getCommentsOfRecipe($idRecipe)
 {
   global $db; 
 
-  $reqComments = $db->prepare('SELECT pseudo,description,rating,date FROM rate,user WHERE user.idUser = rate.idUser AND idRecipe = :idRecipe');
+  $reqComments = $db->prepare('SELECT pseudo,description,rating,date FROM rate,user WHERE user.idUser = rate.idUser AND idRecipe = :idRecipe ORDER BY date DESC');
   $reqComments->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
   $reqComments->execute();
 
@@ -938,7 +963,7 @@ function numberOfWaitingRecipeByUser($idUser)
 function removeAllInformationsOfRecipe($idRecipe)
 {
   removePicture($idRecipe);
-  removeIngredients($idRecipe);
+  removeAllIngredients($idRecipe);
   removeRecipe($idRecipe);
 }
 
@@ -963,12 +988,27 @@ function removePicture($idRecipe)
  * @param int $idRecipe id de la recette
  * @return void
  */
-function removeIngredients($idRecipe)
+function removeAllIngredients($idRecipe)
 {
   global $db;
 
   $removeIngredient = $db->prepare("DELETE FROM ingredient WHERE idRecipe = :idRecipe");
   $removeIngredient->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $removeIngredient->execute();
+}
+
+/**
+ * Fonction suppriment un ingrédient
+ *
+ * @param int $idIngredient id de l'ingrédient
+ * @return void
+ */
+function removeIngredient($idIngredient)
+{
+  global $db;
+
+  $removeIngredient = $db->prepare("DELETE FROM ingredient WHERE idIngredient = :idIngredient");
+  $removeIngredient->bindParam(":idIngredient",$idIngredient,PDO::PARAM_INT);
   $removeIngredient->execute();
 }
 
@@ -987,4 +1027,489 @@ function removeRecipe($idRecipe)
   $removeIngredient->execute();
 }
 
+/**
+ * Fonction retournant les informations d'une recette
+ *
+ * @param int $idRecipe id de la recette
+ * @return array tableau des données
+ */
+function getAllInformationsOfRecipe($idRecipe)
+{
+  global $db; 
+
+  $reqInformations = $db->prepare('SELECT pseudo,path,picture.idRecipe,title,description,timeRequired,isValid,lastChangeDate FROM recipe INNER JOIN picture on recipe.idRecipe = picture.idRecipe INNER JOIN user on recipe.idUser = user.idUser');
+  $reqInformations->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $reqInformations->execute();
+
+  $datas = $reqInformations->fetch();
+
+  return $datas;
+}
+
+/**
+ * Fonction modifiant un ingrédient
+ *
+ * @param int $idIngredientToEdit id de l'ingrédient
+ * @param string $name nom de l'ingrédient
+ * @param int $quantity quantité de l'ingrédient
+ * @param string $unity unité de l'ingrédient
+ * @return void
+ */
+function editIngredient($idIngredientToEdit,$name,$quantity,$unity)
+{
+  global $db; 
+
+  $reqIngredient = $db->prepare('UPDATE ingredient SET name = :name, quantity = :quantity, unity = :unity WHERE idIngredient = :idIngredient');
+  $reqIngredient->bindParam(":idIngredient",$idIngredientToEdit,PDO::PARAM_INT);
+  $reqIngredient->bindParam(":quantity",$quantity,PDO::PARAM_INT);
+  $reqIngredient->bindParam(":name",$name,PDO::PARAM_STR);
+  $reqIngredient->bindParam(":unity",$unity,PDO::PARAM_STR);
+  $reqIngredient->execute();
+}
+
+/**
+ * Fonction servant a modifier une recette
+ *
+ * @param int $idRecipe id de la recette
+ * @param int $title titre de la recette
+ * @param string $description description de la recette
+ * @param int $timeRequired temps requis
+ * @return void
+ */
+function editRecipe($idRecipe,$title,$description,$timeRequired)
+{
+  global $db; 
+
+  $reqRecipe = $db->prepare('UPDATE recipe SET isValid = 0, title = :title, description = :description, timeRequired = :timeRequired, lastChangeDate = NOW() WHERE idRecipe = :idRecipe');
+  $reqRecipe->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $reqRecipe->bindParam(":timeRequired",$timeRequired,PDO::PARAM_INT);
+  $reqRecipe->bindParam(":title",$title,PDO::PARAM_STR);
+  $reqRecipe->bindParam(":description",$description,PDO::PARAM_STR);
+  $reqRecipe->execute();
+}
+
+/**
+ * Fonction servant à savoir si un utilisateur a déjà posté un avis ou pas
+ *
+ * @param int $idUser id de l'utilisateur
+ * @return void
+ */
+function userHasNeverPostRate($idUser)
+{
+  global $db;
+
+  $reqUser = $db->prepare("SELECT rating FROM rate WHERE idUser = :idUser");
+  $reqUser->bindParam(":idUser",$idUser,PDO::PARAM_INT);
+  $reqUser->execute();
+
+  if ($reqUser->rowCount() <= 0) 
+  {
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+  
+}
+
+/**
+ * Fonction retournant tout les avis qu'a posté un utilisateur
+ *
+ * @param int $idUser id de l'utilisateur
+ * @return array tableau contenant tout les avis
+ */
+function allRateOfUser($idUser)
+{
+  global $db; 
+
+  $reqRates = $db->prepare('SELECT idRate,title,rate.idUser,rate.idRecipe,rating,rate.description,date FROM rate INNER JOIN recipe on rate.idRecipe = recipe.idRecipe WHERE rate.idUser = :idUser');
+  $reqRates->bindParam(":idUser",$idUser,PDO::PARAM_INT);
+  $reqRates->execute();
+
+  $datas = $reqRates->fetchAll();
+
+  return $datas;
+}
+
+/**
+ * Fonction retournant tout les avis posté sur le site
+ *
+ * @return array tableau contenant tout les avis
+ */
+function allRateForAdmin()
+{
+  global $db; 
+
+  $reqRates = $db->query('SELECT pseudo,idRate,title,rate.idUser,rate.idRecipe,rating,rate.description,date FROM rate INNER JOIN recipe on rate.idRecipe = recipe.idRecipe INNER JOIN user on rate.idUser = user.idUser');
+
+  $datas = $reqRates->fetchAll();
+
+  return $datas;
+}
+
+/**
+ * Fonction servant a afficher tout les avis d'un utilisateur
+ *
+ * @param int $idUser id de l'utilisateur
+ * @return array avis de l'utilisateur.
+ */
+function showAllRateOfUser($idUser)
+{
+
+  $resultRate = "";
+  $rates = allRateOfUser($idUser);
+  
+  foreach ($rates as $r) 
+  {
+    $resultRate .= "<tr style='background-color: #ffffff;'>";
+    $resultRate .= "<td class='align-middle'>".ucfirst($r{"title"})."</td>";
+    $resultRate .= "<td class='align-middle'>".getStarsFromNumber($r{"rating"})."</td>";
+    $resultRate .= "<td class='align-middle'>".$r{"description"}."</td>";
+    $resultRate .= "<td class='align-middle'>".changeDateFormat($r{"date"})."</td>";
+    $resultRate .= "<td class='align-middle'><a href=\"editRate.php?idUser=".$idUser."&idRate=".$r{"idRate"}."\" title=\"Modifier\"><i class=\"fa fa-edit\"></i></a></td>";
+    $resultRate .= "<td class='align-middle'><a class='text-danger' href=\"deleteRate.php?idUser=".$idUser."&idRate=".$r{"idRate"}."\" title=\"Supprimer\"><i class=\"fa fa-trash\"></i></a></td>";
+    $resultRate .= "</tr>";
+  }
+
+  $datas = '';
+  $datas .= '<div class="container-fluid mb-5">';
+  $datas .=   '<div class="row">';
+  $datas .=     '<div class="col-lg-10 m-auto">';
+  $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
+  $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Liste des avis que vous avez posté.</h4></div>';
+  $datas .=         '<div class="card-body p-0 m-0">';
+  $datas .=           '<table class="table table-hover">';
+  $datas .=             '<thead>';
+  $datas .=               '<tr>';
+  $datas .=                 '<th>Nom de la recette</th>';
+  $datas .=                 '<th>Note</th>';
+  $datas .=                 '<th>Avis</th>';
+  $datas .=                 '<th>Posté le</th>';
+  $datas .=                 '<th>Modifier</th>';
+  $datas .=                 '<th>Supprimer</th>';
+  $datas .=               '</tr>';
+  $datas .=             '</thead>';
+  $datas .=             '<tbody>';
+  $datas .=               $resultRate;
+  $datas .=             '</tbody>';
+  $datas .=           '</table class="table">';
+  $datas .=         '</div>';
+  $datas .=       '</div>';
+  $datas .=     '</div>';
+  $datas .=   '</div>';
+  $datas .= '</div>';
+
+  return $datas;
+}
+
+/**
+ * Fonction servant a afficher tout les avis du site
+ *
+ * @return array avis du site.
+ */
+function showAllRateForAdmin()
+{
+
+  $resultRate = "";
+  $rates = allRateForAdmin();
+  
+  foreach ($rates as $r) 
+  {
+    $resultRate .= '<form method="post" action="">';
+    $resultRate .= "<tr style='background-color: #ffffff;'>";
+    $resultRate .= "<td class='align-middle'>".ucfirst($r{"title"})."</td>";
+    $resultRate .= "<td class='align-middle'>".ucfirst($r{"pseudo"})."</td>";
+    $resultRate .= "<td class='align-middle'>".getStarsFromNumber($r{"rating"})."</td>";
+    $resultRate .= "<td class='align-middle'>".$r{"description"}."</td>";
+    $resultRate .= "<td class='align-middle'>".changeDateFormat($r{"date"})."</td>";
+    $resultRate .= "<td class='align-middle'><input class='form-control btn btn-danger' type='submit' value='Supprimer' name='deleteRate'><input type='hidden' value=".$r{"idRate"}." name='idRate'></td>";
+    $resultRate .= "</tr>";
+    $resultRate .= '</form>';
+  }
+
+  $datas = '';
+  $datas .= '<div class="container-fluid mb-5">';
+  $datas .=   '<div class="row">';
+  $datas .=     '<div class="col-lg-10 m-auto">';
+  $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
+  $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Liste des avis du site.</h4></div>';
+  $datas .=         '<div class="card-body p-0 m-0">';
+  $datas .=           '<table class="table table-hover">';
+  $datas .=             '<thead>';
+  $datas .=               '<tr>';
+  $datas .=                 '<th>Nom de la recette</th>';
+  $datas .=                 '<th>Posté par :</th>';
+  $datas .=                 '<th>Note</th>';
+  $datas .=                 '<th>Avis</th>';
+  $datas .=                 '<th>Posté le</th>';
+  $datas .=                 '<th>Supprimer</th>';
+  $datas .=               '</tr>';
+  $datas .=             '</thead>';
+  $datas .=             '<tbody>';
+  $datas .=               $resultRate;
+  $datas .=             '</tbody>';
+  $datas .=           '</table class="table">';
+  $datas .=         '</div>';
+  $datas .=       '</div>';
+  $datas .=     '</div>';
+  $datas .=   '</div>';
+  $datas .= '</div>';
+
+  return $datas;
+}
+
+/**
+ * Fonction supprimant un avis de la base de donnée
+ *
+ * @param int $idRate id de l'avis
+ * @return void
+ */
+function removeRate($idRate)
+{
+  global $db;
+
+  $removeRate = $db->prepare("DELETE FROM rate WHERE idRate = :idRate");
+  $removeRate->bindParam(":idRate",$idRate,PDO::PARAM_INT);
+  $removeRate->execute();
+}
+
+/**
+ * Fonction retournant les donnés d'un avis
+ *
+ * @param int $idRate id de l'avis
+ * @return array donnés de l'avis
+ */
+function getInformationsOfRate($idRate)
+{
+  global $db; 
+
+  $reqInformations = $db->prepare('SELECT description,idRecipe,rating FROM rate WHERE idRate = :idRate');
+  $reqInformations->bindParam(":idRate",$idRate,PDO::PARAM_INT);
+  $reqInformations->execute();
+
+  $datas = $reqInformations->fetch();
+
+  return $datas;
+}
+
+/**
+ * fonction modifiant un avis d'un utilisateur
+ *
+ * @param int $idRate id de l'avis
+ * @param int $rating note de l'avis
+ * @param string $description description de l'avis
+ * @return void
+ */
+function editRate($idRate,$rating,$description)
+{
+  global $db; 
+
+  $reqRate = $db->prepare('UPDATE rate SET rating = :rating, description = :description, date = NOW() WHERE idRate = :idRate');
+  $reqRate->bindParam(":idRate",$idRate,PDO::PARAM_INT);
+  $reqRate->bindParam(":rating",$rating,PDO::PARAM_INT);
+  $reqRate->bindParam(":description",$description,PDO::PARAM_STR);
+  $reqRate->execute();
+}
+
+/**
+ * Fonction retournant toutes les recettes en attentes
+ *
+ * @return array donnés des recettes en attentes
+ */
+function getWaitingRecipeForAdmin()
+{
+  global $db; 
+
+  $reqRecipe = $db->query('SELECT pseudo,path,recipe.idRecipe,recipe.idUser,title,description,timeRequired,isValid,lastChangeDate FROM user,picture,recipe WHERE picture.idRecipe = recipe.idRecipe AND user.idUser = recipe.idUser AND isValid = 0');
+  $recipe = $reqRecipe->fetchAll();
+  return $recipe;
+}
+
+/**
+ * Fonction affichant les recettes en attente pour les admins
+ *
+ * @return array donnés des recettes en attentes
+ */
+function showWaitingRecipeForAdmin()
+{
+  $resultRecipe = "";
+
+  $recipe = getWaitingRecipeForAdmin();
+  
+  foreach ($recipe as $r) 
+  {
+    $resultRecipe .= '<form method="post" action="">';
+    $resultRecipe .= "<tr style='background-color: #ffffff;'>";
+    $resultRecipe .= "<td><img class=\"img-fluid rounded\" src=\"img/upload/".$r{"path"}."\" alt=\"photo de la recette\" style=\"width: 150px; height: 100px;\"></td>";
+    $resultRecipe .= "<td class='align-middle'>".ucfirst($r{"title"})."</td>";
+    $resultRecipe .= "<td class='align-middle'>".numberOfRates($r{"idRecipe"})."</td>";
+    if (rateExists($r{"idRecipe"})) 
+    {
+      $resultRecipe .= "<td class='align-middle'>".getStarsFromNumber(getMoyenneOfRates($r{"idRecipe"}))."</td>";
+    }
+    else
+    {
+      $resultRecipe .= "<td class='align-middle'>Pas de note moyenne</td>";
+    }
+    $resultRecipe .= "<td class='align-middle'>".$r{"timeRequired"}." Minutes</td>";
+    $resultRecipe .= "<td class='align-middle'>".changeDateFormat($r{"lastChangeDate"})."</td>";
+    $resultRecipe .= "<td class='align-middle'><input class='form-control btn btn-success' type='submit' value='Valider' name='confirmRecipe'></td>";
+    $resultRecipe .= "<td class='align-middle'><input class='form-control btn btn-danger' type='submit' value='Supprimer' name='removeRecipe'><input type='hidden' value=".$r{"idRecipe"}." name='idRecipe'></td>";
+    $resultRecipe .= "</tr>";
+    $resultRecipe .= '</form>';
+  }
+
+  $datas = '';
+  $datas .= '<div class="container-fluid mb-5">';
+  $datas .=   '<div class="row">';
+  $datas .=     '<div class="col-lg-10 m-auto">';
+  $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
+  $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Liste des recettes en attentes.</h4></div>';
+  $datas .=         '<div class="card-body p-0 m-0">';
+  $datas .=           '<table class="table table-hover">';
+  $datas .=             '<thead>';
+  $datas .=               '<tr>';
+  $datas .=                 '<th>Photo de la recette</th>';
+  $datas .=                 '<th>Nom de la recette</th>';
+  $datas .=                 '<th>Nombre d\'avis</th>';
+  $datas .=                 '<th>Note moyenne</th>';
+  $datas .=                 '<th>Temps de préparation</th>';
+  $datas .=                 '<th>Posté le</th>';
+  $datas .=                 '<th>Valider</th>';
+  $datas .=                 '<th>Supprimer</th>';
+  $datas .=               '</tr>';
+  $datas .=             '</thead>';
+  $datas .=             '<tbody>';
+  $datas .=               $resultRecipe;
+  $datas .=             '</tbody>';
+  $datas .=           '</table class="table">';
+  $datas .=         '</div>';
+  $datas .=       '</div>';
+  $datas .=     '</div>';
+  $datas .=   '</div>';
+  $datas .= '</div>';
+
+  return $datas;
+}
+
+/**
+ * Fonction affichant les recettes validés pour les admins
+ *
+ * @return array donnés des recettes en validés
+ */
+function showValidedRecipeForAdmin()
+{
+  $resultRecipe = "";
+
+  $recipe = getAllRecettes();
+  
+  foreach ($recipe as $r) 
+  {
+    $resultRecipe .= '<form method="post" action="">';
+    $resultRecipe .= "<tr style='background-color: #ffffff;'>";
+    $resultRecipe .= "<td><img class=\"img-fluid rounded\" src=\"img/upload/".$r{"path"}."\" alt=\"photo de la recette\" style=\"width: 150px; height: 100px;\"></td>";
+    $resultRecipe .= "<td class='align-middle'>".ucfirst($r{"title"})."</td>";
+    $resultRecipe .= "<td class='align-middle'>".numberOfRates($r{"idRecipe"})."</td>";
+    if (rateExists($r{"idRecipe"})) 
+    {
+      $resultRecipe .= "<td class='align-middle'>".getStarsFromNumber(getMoyenneOfRates($r{"idRecipe"}))."</td>";
+    }
+    else
+    {
+      $resultRecipe .= "<td class='align-middle'>Pas de note moyenne</td>";
+    }
+    $resultRecipe .= "<td class='align-middle'>".$r{"timeRequired"}." Minutes</td>";
+    $resultRecipe .= "<td class='align-middle'>".changeDateFormat($r{"lastChangeDate"})."</td>";
+    $resultRecipe .= "<td class='align-middle'><input class='form-control btn btn-danger' type='submit' value='Supprimer' name='removeRecipe'><input type='hidden' value=".$r{"idRecipe"}." name='idRecipe'></td>";
+    $resultRecipe .= "</tr>";
+    $resultRecipe .= '</form>';
+  }
+
+  $datas = '';
+  $datas .= '<div class="container-fluid mb-5">';
+  $datas .=   '<div class="row">';
+  $datas .=     '<div class="col-lg-10 m-auto">';
+  $datas .=       '<div class="shadow-lg card text-dark" style="background-color: #EEEEEE;">';
+  $datas .=         '<div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Liste des recettes validés.</h4></div>';
+  $datas .=         '<div class="card-body p-0 m-0">';
+  $datas .=           '<table class="table table-hover">';
+  $datas .=             '<thead>';
+  $datas .=               '<tr>';
+  $datas .=                 '<th>Photo de la recette</th>';
+  $datas .=                 '<th>Nom de la recette</th>';
+  $datas .=                 '<th>Nombre d\'avis</th>';
+  $datas .=                 '<th>Note moyenne</th>';
+  $datas .=                 '<th>Temps de préparation</th>';
+  $datas .=                 '<th>Posté le</th>';
+  $datas .=                 '<th>Valider</th>';
+  $datas .=               '</tr>';
+  $datas .=             '</thead>';
+  $datas .=             '<tbody>';
+  $datas .=               $resultRecipe;
+  $datas .=             '</tbody>';
+  $datas .=           '</table class="table">';
+  $datas .=         '</div>';
+  $datas .=       '</div>';
+  $datas .=     '</div>';
+  $datas .=   '</div>';
+  $datas .= '</div>';
+
+  return $datas;
+}
+
+/**
+ * Fonction validant les recettes
+ *
+ * @param int $idRecipe id de la recette
+ * @return void
+ */
+function confirmRecipe($idRecipe)
+{
+  global $db; 
+
+  $reqConfirm = $db->prepare('UPDATE recipe SET isValid = 1 WHERE idRecipe = :idRecipe');
+  $reqConfirm->bindParam(":idRecipe",$idRecipe,PDO::PARAM_INT);
+  $reqConfirm->execute();
+}
+
+/**
+ * Fonction retournant les informations d'un user
+ *
+ * @param int $idUser id de l'utilisateur
+ * @return array données de l'utilisateur
+ */
+function getInformationsOfUser($idUser)
+{
+  global $db; 
+
+  $reqInformations = $db->prepare('SELECT pseudo,email FROM user WHERE idUser = :idUser');
+  $reqInformations->bindParam(":idUser",$idUser,PDO::PARAM_INT);
+  $reqInformations->execute();
+
+  $datas = $reqInformations->fetch();
+
+  return $datas;
+}
+
+/**
+ * fonction modifiant les données d'un utilisateur
+ *
+ * @param int $idUser id de l'utilisateur
+ * @param string $pseudo pseudo de l'utilisateur
+ * @param string $email email de l'utilisateur
+ * @param string $password mot de passe de l'utilisateur
+ * @return void
+ */
+function editUser($idUser,$pseudo,$email,$password)
+{
+  global $db; 
+
+  $reqEditUser = $db->prepare('UPDATE user SET pseudo = :pseudo, email = :email, password = :password WHERE idUser = :idUser');
+  $reqEditUser->bindParam(":idUser",$idUser,PDO::PARAM_INT);
+  $reqEditUser->bindParam(":pseudo",$pseudo,PDO::PARAM_STR);
+  $reqEditUser->bindParam(":email",$email,PDO::PARAM_STR);
+  $reqEditUser->bindParam(":password",$password,PDO::PARAM_STR);
+  $reqEditUser->execute();
+}
 ?>
