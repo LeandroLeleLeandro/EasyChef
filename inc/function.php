@@ -1512,4 +1512,5 @@ function editUser($idUser,$pseudo,$email,$password)
   $reqEditUser->bindParam(":password",$password,PDO::PARAM_STR);
   $reqEditUser->execute();
 }
+
 ?>

@@ -126,7 +126,7 @@ if($btnNewRecipe)
                 <?php if (isset($error["recipe"])): ?>
                     <div class="card-header text-light p-3 pl-4" style="background-color: #A52A2A"><h4><?php if(isset($error["recipe"])){ echo $error["recipe"];} ?></h4></div>
                 <?php else: ?>
-                    <div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Ajouter une recette <button class="btn btn-success" onclick="showFormRecipe()">+</button>&nbsp;<button  class="btn btn-danger" onclick="hideFormRecipe()">-</button></h4></div>
+                    <div class="card-header text-light p-3 pl-4" style="background-color: #453823; color: white;"><h4>Ajouter une recette</h4></div>
                 <?php endif; ?>
                 <div class="card-body" id="divAddRecipe">
                     <form  enctype="multipart/form-data" method="post">
@@ -186,16 +186,6 @@ if($btnNewRecipe)
 </div>
 <script>
 var nbr = document.getElementById("hiddenNbIngredient").value;
-
-function showFormRecipe()
-{
-    document.getElementById("divAddRecipe").style.display = "block";
-}
-
-function hideFormRecipe()
-{
-    document.getElementById("divAddRecipe").style.display = "none";
-}
 
 function addIngredients()
 {
